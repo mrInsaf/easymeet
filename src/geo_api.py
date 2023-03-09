@@ -1,6 +1,8 @@
-from config import GEO_API_KEY
+import os
 import requests
 import json
+
+GEO_API_KEY = os.getenv("GEO_API_KEY")
 
 
 def get_data_by_coordinates(departure: tuple, arrive: tuple, mode: str = "jam"):

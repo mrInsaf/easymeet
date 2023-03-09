@@ -1,10 +1,11 @@
+import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-from config import TG_BOT_TOKEN
 import asyncio
 
-bot = Bot(token=TG_BOT_TOKEN)
+TOKEN = os.getenv("TOKEN")
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
 
