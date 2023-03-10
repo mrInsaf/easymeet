@@ -1,11 +1,30 @@
 import os
 import requests
 import json
+import logging
+from geopy.geocoders import Nominatim
+
+geo_locator = Nominatim(user_agent="EasyMeet")
+
+FORMAT = '%(asctime)s - [%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger(__name__)
 
 GEO_API_KEY = os.getenv("GEO_API_KEY")
 
 
+def get_coordinates_by_address(address: str):
+    location = None
+    try:
+        location = geo_locator.geocode(address)
+    except Exception as ex:
+        logger.warning(ex)
+    return location.latitude, location.longitude
+
+
 def get_data_by_coordinates(departure: tuple, arrive: tuple, mode: str = "jam"):
+    if mode == "test":
+        return 1319, 111287
     url = f'https://routing.api.2gis.com/get_dist_matrix?key={GEO_API_KEY}&version=2.0'
     headers = {'Content-type': 'application/json'}
     data = {
@@ -24,10 +43,8 @@ def get_data_by_coordinates(departure: tuple, arrive: tuple, mode: str = "jam"):
         "type": mode,
     }
     request = requests.post(url, data=json.dumps(data), headers=headers)
-    result = None
     try:
-        result = request.json()
+        data = request.json()
+        return data["routes"][0]["duration"], data["routes"][0]["distance"]
     except Exception as ex:
-        result = {'error': ex}
-    finally:
-        return result
+        logger.warning(ex)

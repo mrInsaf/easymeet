@@ -1,8 +1,16 @@
 import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
+from dateutil.parser import parse
 from aiogram.utils import executor
 import asyncio
+import logging
+from geo_api import get_coordinates_by_address, get_data_by_coordinates
+from db import db_add_group, db_create_user
+
+FORMAT = '%(asctime)s - [%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
@@ -11,17 +19,31 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=["start"])
 async def start_command(massage: types.Message):
+    db_create_user(massage.from_user.id, massage.from_user.username, massage.from_user.first_name,
+                   massage.from_user.last_name)
     await massage.reply("Hi, my name is EasyMeet")
 
 
-@dp.message_handler(commands=["add_trip"])
-async def add_trip(massage: types.Message):
-    markup_inline = types.InlineKeyboardMarkup()
-    item_yes = types.InlineKeyboardButton(text="Да", callback_data='yes_remind')
-    item_no = types.InlineKeyboardButton(text="Нет", callback_data='no_remind')
-    markup_inline.add(item_yes, item_no)
-    await bot.send_message(massage.from_user.id, "Хотите чтобы я предупредил вас за 5 минут до выхода?",
-                           reply_markup=markup_inline)
+@dp.message_handler(commands=["create_group"])
+async def create_group(massage: types.Message):
+    try:
+        trip_data = massage.text.split()
+
+        trip_date = parse(' '.join(trip_data[1:3]))
+
+        trip_address = ' '.join(trip_data[3:])
+        address_coordinates = get_coordinates_by_address(trip_address)
+        if not address_coordinates:
+            raise ValueError("Неправильный адрес")
+
+        trip_id = db_add_group(trip_date, trip_address, address_coordinates)
+        if not trip_id:
+            raise RuntimeError("Не смог создать группу")
+
+        await massage.reply(f"Создал группу.\nДата: {trip_date}.\nАдрес: {trip_address}\nID группы{trip_id}")
+    except Exception as ex:
+        logger.warning(ex)
+        await massage.reply("Неправильный ввод")
 
 
 @dp.callback_query_handler()
