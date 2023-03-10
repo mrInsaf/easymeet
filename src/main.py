@@ -21,7 +21,13 @@ dp = Dispatcher(bot)
 async def start_command(massage: types.Message):
     db_create_user(massage.from_user.id, massage.from_user.username, massage.from_user.first_name,
                    massage.from_user.last_name)
-    await massage.reply("Hi, my name is EasyMeet")
+    await massage.reply("Привет, я имя .\nПопробуй команду /help чтобы посмотреть на что я способен.")
+
+
+@dp.message_handler(commands=["help"])
+async def help_command(massage: types.Message):
+    help_data = "TODO"
+    await bot.send_message(massage.from_user.id, help_data)
 
 
 @dp.message_handler(commands=["create_group"])
