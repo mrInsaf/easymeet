@@ -4,8 +4,6 @@ import json
 import logging
 from geopy.geocoders import Nominatim
 
-geo_locator = Nominatim(user_agent="EasyMeet")
-
 FORMAT = '%(asctime)s - [%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger(__name__)
@@ -14,12 +12,12 @@ GEO_API_KEY = os.getenv("GEO_API_KEY")
 
 
 def get_coordinates_by_address(address: str):
-    location = None
-    try:
-        location = geo_locator.geocode(address)
-    except Exception as ex:
-        logger.warning(ex)
-    return location.latitude, location.longitude
+    with Nominatim(user_agent="specify_your_app_name_here") as geo_locator:
+        try:
+            location = geo_locator.geocode(address)
+            return location.latitude, location.longitude
+        except Exception as ex:
+            logger.warning(ex)
 
 
 def get_data_by_coordinates(departure: tuple, arrive: tuple, mode: str = "jam"):
