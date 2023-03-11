@@ -7,6 +7,7 @@ import asyncio
 import logging
 from geo_api import get_coordinates_by_address, get_data_by_coordinates
 from db import db_add_group, db_create_user
+from weather import get_weather_by_coordinates
 
 FORMAT = '%(asctime)s - [%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -26,7 +27,8 @@ async def start_command(massage: types.Message):
 
 @dp.message_handler(commands=["help"])
 async def help_command(massage: types.Message):
-    help_data = "TODO"
+    help_data = "/get_weather [адрес] - текущий прогноз погоды по данному адресу.\n" \
+                "/create_group [дата] [время] [адрес] - создать группу поездки. Бот вернёт id группы\n"
     await bot.send_message(massage.from_user.id, help_data)
 
 
@@ -50,6 +52,21 @@ async def create_group(massage: types.Message):
     except Exception as ex:
         logger.warning(ex)
         await massage.reply("Неправильный ввод")
+
+
+@dp.message_handler(commands=["get_weather"])
+async def weather_by_address(massage: types.Message):
+    trip_data = massage.text.split()
+    try:
+        trip_address = ' '.join(trip_data[1:])
+        address_coordinates = get_coordinates_by_address(trip_address)
+        if not address_coordinates:
+            raise ValueError("Неправильный адрес")
+        weather = get_weather_by_coordinates(address_coordinates)
+        await bot.send_message(massage.from_user.id, weather)
+    except Exception as ex:
+        logger.warning(ex)
+        await massage.reply("Ты что-то ввёл не так(")
 
 
 @dp.callback_query_handler()

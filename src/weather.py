@@ -16,10 +16,10 @@ def get_weather_by_coordinates(coordinates):
     if request.status_code != 200:
         return
     weather = request.json()
-    result = dict()
-    result['temp'] = weather['main']['temp']
-    result['temp_feels'] = weather['main']['feels_like']
-    result['pressure'] = weather['main']['pressure']
-    result['wind_speed'] = weather['wind']['speed']
-    result['weather'] = weather['weather'][0]['description']
+    result = f"Температура: {weather['main']['temp']}°C\n" \
+             f"Ощущается как: {weather['main']['feels_like']}°C\n" \
+             f"Вероятность осадков: {weather['main']['humidity']}%\n" \
+             f"Давление: {weather['main']['pressure']}мм рт. ст.\n" \
+             f"Скорость ветра: {weather['wind']['speed']}м/с\n" \
+             f"На небе {weather['weather'][0]['description']}"
     return result

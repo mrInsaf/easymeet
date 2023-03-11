@@ -12,7 +12,7 @@ GEO_API_KEY = os.getenv("GEO_API_KEY")
 
 
 def get_coordinates_by_address(address: str):
-    with Nominatim(user_agent="specify_your_app_name_here") as geo_locator:
+    with Nominatim(user_agent="EasyMeet") as geo_locator:
         try:
             location = geo_locator.geocode(address)
             return location.latitude, location.longitude
@@ -20,7 +20,7 @@ def get_coordinates_by_address(address: str):
             logger.warning(ex)
 
 
-def get_data_by_coordinates(departure: tuple, arrive: tuple, mode: str = "jam"):
+def get_data_by_coordinates(departure: tuple, arrive: tuple, mode: str = "test"):
     if mode == "test":
         return 1319, 111287
     url = f'https://routing.api.2gis.com/get_dist_matrix?key={GEO_API_KEY}&version=2.0'
