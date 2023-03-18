@@ -7,7 +7,7 @@ import asyncio
 import logging
 from geo_api import get_coordinates_by_address, get_data_by_coordinates
 from db import db_add_group, db_create_user, check_user_in_group, user_exist, get_chat_id_by_username, \
-    add_user_to_group, see_group_list
+    add_user_to_group, see_group_list, update_departure
 from weather import get_weather_by_coordinates
 
 FORMAT = '%(asctime)s - [%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
@@ -113,14 +113,31 @@ async def get_group_list(massage: types.Message):
 
 @dp.message_handler(commands=["get_weather"])
 async def weather_by_address(massage: types.Message):
-    trip_data = massage.text.split()
     try:
-        trip_address = ' '.join(trip_data[1:])
+        trip_address = ' '.join(massage.text.split()[1:])
         address_coordinates = get_coordinates_by_address(trip_address)
         if not address_coordinates:
             raise ValueError("Неправильный адрес")
         weather = get_weather_by_coordinates(address_coordinates)
         await bot.send_message(massage.from_user.id, weather)
+    except Exception as ex:
+        logger.warning(ex)
+        await massage.reply("Ты что-то ввёл не так(")
+
+
+@dp.message_handler(commands=["add_departure"])
+async def add_departure(massage: types.Message):
+    trip_data = massage.text.split()
+    try:
+        group_id = int(trip_data[1])
+        trip_address = ' '.join(trip_data[2:])
+        address_coordinates = get_coordinates_by_address(trip_address)
+        if not address_coordinates:
+            raise ValueError("Неправильный адрес")
+        if update_departure(group_id, massage.from_user.id, address_coordinates):
+            await bot.send_message(massage.from_user.id, "Адрес успешно изменён")
+        else:
+            raise RuntimeError("cant find trip by group_id user_id")
     except Exception as ex:
         logger.warning(ex)
         await massage.reply("Ты что-то ввёл не так(")

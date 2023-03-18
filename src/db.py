@@ -43,7 +43,7 @@ def get_username_by_chat_id(chat_id: int) -> str:
 
 
 def add_user_to_group(group_id, chat_id):
-    trips.append((group_id, chat_id))
+    trips.append((group_id, chat_id, None, None, None))
 
 
 def see_group_list(group_id: int) -> list:
@@ -52,3 +52,17 @@ def see_group_list(group_id: int) -> list:
         if trip[0] == group_id:
             group_list.append("@" + get_username_by_chat_id(trip[1]))
     return group_list
+
+
+def update_departure(group_id: int, user_id: int, address_coordinates: tuple) -> bool:
+    global trips
+    update_num = None
+    for i in range(len(trips)):
+        if trips[0] == group_id and trips[1] == user_id:
+            update_num = i
+            break
+    if update_num:
+        new_trip = (trips[0], trips[1], address_coordinates, trips[3], trips[4])
+        trips = trips[:update_num] + [new_trip] + trips[update_num + 1:]
+        return True
+    return False
