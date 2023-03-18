@@ -1,5 +1,10 @@
 import os
 import requests
+import logging
+
+FORMAT = '%(asctime)s - [%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger(__name__)
 
 API_KEY = os.getenv("WEATHER_API_KEY")
 
@@ -14,6 +19,8 @@ def get_weather_by_coordinates(coordinates):
 
     request = requests.get(url)
     if request.status_code != 200:
+        logging.warning(request.status_code)
+        logging.warning(request.text)
         return
     weather = request.json()
     result = f"Температура: {weather['main']['temp']}°C\n" \
